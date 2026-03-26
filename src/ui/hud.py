@@ -95,8 +95,42 @@ class HUD:
         
         return crosshair
     
+    def render_compass(self, angle: float, width: int) -> str:
+        """
+        Render a compass strip showing cardinal directions.
+        
+        Args:
+            angle: Player view angle (radians)
+            width: Width of compass display
+            
+        Returns:
+            Compass string
+        """
+        # Normalize angle to [0, 360) degrees
+        deg = math.degrees(angle) % 360
+        
+        # Compass string starting at East (0 degrees)
+        # E is at index 0, SE at 8, S at 16, etc.
+        # Ensure each segment is exactly 8 chars
+        compass_strip = "E       SE      S       SW      W       NW      N       NE      " * 3
+        
+        # Calculate offset
+        # The strip has 64 chars for 360 degrees
+        total_chars = 64
+        offset = int((deg / 360.0) * total_chars)
+        
+        # Center the view
+        # We want the current angle to be in the center of the 'width' window
+        # We use the middle copy of the strip (index starts at 64)
+        center_index = 64 + offset
+        start_index = center_index - width // 2
+        
+        visible_strip = compass_strip[start_index : start_index + width]
+        
+        return visible_strip
+
     def render_minimap(self, game_map, player_x: float, player_y: float, 
-                       other_players: Optional[List] = None) -> List[str]:
+                       other_players: Optional[List] = None, player_angle: float = 0.0) -> List[str]:
         """
         Render a minimap.
         
@@ -105,6 +139,7 @@ class HUD:
             player_x: Player X position
             player_y: Player Y position
             other_players: List of other players (optional)
+            player_angle: Player angle (radians)
             
         Returns:
             List of strings representing minimap lines
@@ -120,6 +155,17 @@ class HUD:
         tile_y = int(player_y)
         radius = size // 2
         
+        # Determine player arrow based on angle
+        deg = math.degrees(player_angle) % 360
+        if 337.5 <= deg or deg < 22.5: player_char = '>'
+        elif 22.5 <= deg < 67.5: player_char = '↘'
+        elif 67.5 <= deg < 112.5: player_char = 'v'
+        elif 112.5 <= deg < 157.5: player_char = '↙'
+        elif 157.5 <= deg < 202.5: player_char = '<'
+        elif 202.5 <= deg < 247.5: player_char = '↖'
+        elif 247.5 <= deg < 292.5: player_char = '^'
+        else: player_char = '↗'
+        
         for dy in range(-radius, radius + 1):
             row = []
             for dx in range(-radius, radius + 1):
@@ -128,7 +174,7 @@ class HUD:
                 
                 # Check if this is player position
                 if dx == 0 and dy == 0:
-                    row.append('@')
+                    row.append(player_char)
                 # Check for other players
                 elif other_players:
                     found_player = False
@@ -139,10 +185,10 @@ class HUD:
                             break
                     if not found_player:
                         tile = game_map.get_tile(map_x, map_y)
-                        row.append('#' if tile == 1 else '.')
+                        row.append('#' if tile == 1 else ' ')
                 else:
                     tile = game_map.get_tile(map_x, map_y)
-                    row.append('#' if tile == 1 else '.')
+                    row.append('#' if tile == 1 else ' ')
             
             minimap.append(''.join(row))
         

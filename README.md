@@ -1,24 +1,26 @@
 # Terminal Shooter
 
-A first-person shooter game built entirely for the terminal using ASCII graphics and Python. Experience classic FPS gameplay with raycasting rendering, smooth movement, and shooting mechanics - all in your terminal!
+A first-person shooter game built entirely for the terminal using **colored ASCII graphics** and Python. Experience classic FPS gameplay with raycasting rendering, smooth movement, and shooting mechanics - all in your terminal!
 
 ## 🎮 Features
 
 ### ✅ Fully Implemented
 - **3D Raycasting Engine**: Pseudo-3D first-person view using ASCII characters
+- **Colored Graphics**: Full color support with depth shading and sky gradient
+- **Textured Walls**: Brick patterns and distance-based shading
 - **Smooth Movement**: WASD controls with collision detection
-- **Camera Control**: Arrow keys for looking around
+- **Mouse Support**: Smooth camera rotation with mouse movement
 - **Shooting Mechanics**: Fire projectiles with realistic physics
-- **Health & Ammo System**: Track your status with visual feedback
+- **Health & Ammo System**: Color-coded status (green/yellow/red)
 - **HUD Display**: Health bar, ammo counter, score, position, and FPS
 - **Minimap**: Real-time top-down view with other players
-- **Crosshair**: Aiming reticle for precision shooting
+- **Crosshair**: Yellow aiming reticle for precision shooting
 - **Dynamic Messages**: Visual feedback for actions
 - **Arena Map**: Pre-built arena with obstacles and spawn points
 - **LAN Multiplayer**: Host/join games on local network
 - **Arena Deathmatch**: Real-time multiplayer combat
 - **Score Tracking**: Kills, deaths, and leaderboard
-- **Player Synchronization**: See other players move and shoot in real-time
+- **Player Synchronization**: See other players (red sprites) in real-time
 
 ### 🚧 Coming Soon
 - **Enhanced UI**: Main menu and lobby system
@@ -102,6 +104,7 @@ python -m src.main --join 192.168.1.100
 
 ## 🎯 Controls
 
+### Movement (Keyboard)
 | Key | Action |
 |-----|--------|
 | **W** | Move forward |
@@ -112,6 +115,14 @@ python -m src.main --join 192.168.1.100
 | **Space** | Shoot |
 | **R** | Reload weapon |
 | **Q** or **ESC** | Quit game |
+
+### Mouse Controls
+| Action | Effect |
+|--------|--------|
+| **Move mouse left/right** | Rotate camera (smooth aiming!) |
+| **Left click** | Shoot |
+
+**Tip:** Use mouse for smooth rotation while moving with WASD - just like a real FPS!
 
 ## 📊 HUD Elements
 

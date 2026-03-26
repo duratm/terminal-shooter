@@ -236,6 +236,9 @@ class GameServer:
         client = self.clients[player_id]
         client.last_seen = time.time()
         
+        # Update client's UDP address (may differ from TCP address)
+        client.address = address
+        
         # Handle different message types
         if msg.msg_type == MessageType.POSITION_UPDATE:
             # Update player position
