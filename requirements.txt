@@ -1,0 +1,9 @@
+# Terminal Shooter Requirements
+# Python 3.8+
+
+# Windows curses support (only needed on Windows)
+# Uncomment the line below if running on Windows
+# windows-curses>=2.3.0
+
+# Future additions:
+# numpy>=1.20.0  # For faster math operations if needed
