@@ -78,12 +78,64 @@ class KittyRenderer(Renderer):
                 if game_map.get_tile(map_x, map_y) > 0:
                     hit = True
             
-            # Calculate perpendicular distance
+            # Calculate perpendicular distance to wall
             if side == 0:
                 perp_wall_dist = (map_x - player_x + (1 - step_x) / 2) / ray_dx
             else:
                 perp_wall_dist = (map_y - player_y + (1 - step_y) / 2) / ray_dy
+            
+            # Check for players in this ray direction (before wall rendering)
+            player_to_render = None
+            player_distance = perp_wall_dist
+            
+            for other in other_players:
+                if not other.is_alive:
+                    continue
                 
+                dx = other.x - player_x
+                dy = other.y - player_y
+                dist = math.sqrt(dx*dx + dy*dy)
+                
+                if dist > self.max_depth or dist < 0.1:
+                    continue
+                
+                # Calculate angle to player
+                angle_to_player = math.atan2(dy, dx)
+                current_ray = ray_angle % (2 * math.pi)
+                target_angle = angle_to_player % (2 * math.pi)
+                
+                # Calculate angle difference
+                angle_diff = abs(current_ray - target_angle)
+                if angle_diff > math.pi:
+                    angle_diff = 2 * math.pi - angle_diff
+                
+                # Check if player is in this column's FOV
+                column_fov = (self.fov / self.width) * 2.5  # Slightly wider for pixels
+                if angle_diff < column_fov and dist < player_distance:
+                    player_to_render = other
+                    player_distance = dist
+            
+            # If a player is visible and closer than the wall, render the player
+            if player_to_render and player_distance < perp_wall_dist:
+                # Render player sprite
+                if player_distance < 0.1:
+                    player_distance = 0.1
+                
+                sprite_height = int(self.height / player_distance)
+                y_start = (self.height - sprite_height) // 2
+                y_end = y_start + sprite_height
+                
+                # Clamp to screen bounds
+                y_start = max(0, y_start)
+                y_end = min(self.height, y_end)
+                
+                # Draw player sprite as a colored rectangle (red for enemy)
+                if y_end > y_start:
+                    draw.rectangle([x, y_start, x, y_end], fill=(255, 50, 50))  # Red player
+                
+                continue  # Skip wall rendering for this column
+                
+            # Render wall (original code)
             # Wall X coordinate calculation
             if side == 0:
                 wall_x_coord = player_y + perp_wall_dist * ray_dy
