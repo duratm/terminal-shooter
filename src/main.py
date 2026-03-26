@@ -29,6 +29,7 @@ def print_controls():
     print("  Arrow Keys  - Rotate camera / Look around")
     print("  Space       - Shoot")
     print("  R           - Reload")
+    print("  [ / ]       - Decrease / Increase mouse sensitivity")
     print("  Q / ESC     - Quit game")
     
     print("\n🎯 HUD ELEMENTS:")
@@ -57,6 +58,10 @@ Examples:
     parser.add_argument('--solo', action='store_true', help='Play in solo/test mode')
     parser.add_argument('--test', action='store_true', help='Run in test mode (same as --solo)')
     parser.add_argument('--skip-intro', action='store_true', help='Skip intro messages')
+    parser.add_argument('--sensitivity', type=float, default=0.15, help='Mouse sensitivity (default: 0.15)')
+    parser.add_argument('--graphics', choices=['ascii', 'kitty'], default='ascii', help='Graphics mode (ascii or kitty)')
+    parser.add_argument('--native-input', action='store_true', help='Use pynput for native keyboard handling (requires local execution)')
+    parser.add_argument('--evdev', action='store_true', help='Use evdev for direct input (requires permissions, good for Wayland)')
     
     args = parser.parse_args()
     
@@ -66,6 +71,10 @@ Examples:
             print_welcome()
             print("\n🎯 Starting SOLO MODE...")
             print_controls()
+            print(f"  Mouse Sens  - {args.sensitivity} (Use [ and ] to adjust)")
+            print(f"  Graphics    - {args.graphics.upper()}")
+            print(f"  Native Inp  - {'ENABLED' if args.native_input else 'DISABLED'}")
+            print(f"  Evdev       - {'ENABLED' if args.evdev else 'DISABLED'}")
             print("\n" + "=" * 70)
             print("💡 TIP: Make your terminal fullscreen for the best experience!")
             print("=" * 70)
@@ -78,7 +87,7 @@ Examples:
         
         try:
             game_map = create_default_map()
-            curses.wrapper(start_game, game_map)
+            curses.wrapper(start_game, game_map=game_map, sensitivity=args.sensitivity, graphics_mode=args.graphics, native_input=args.native_input, use_evdev=args.evdev)
         except KeyboardInterrupt:
             print("\n\n🎮 Game interrupted. Thanks for playing!")
         except Exception as e:
@@ -133,7 +142,7 @@ Examples:
         
         try:
             game_map = create_default_map()
-            curses.wrapper(start_game, game_map, client)
+            curses.wrapper(start_game, game_map, client, sensitivity=args.sensitivity, graphics_mode=args.graphics, native_input=args.native_input, use_evdev=args.evdev)
         except KeyboardInterrupt:
             print("\n\n🎮 Game interrupted.")
         except Exception as e:
@@ -180,7 +189,7 @@ Examples:
         
         try:
             game_map = create_default_map()
-            curses.wrapper(start_game, game_map, client)
+            curses.wrapper(start_game, game_map, client, sensitivity=args.sensitivity, graphics_mode=args.graphics, native_input=args.native_input, use_evdev=args.evdev)
         except KeyboardInterrupt:
             print("\n\n🎮 Game interrupted.")
         except Exception as e:
