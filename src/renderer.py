@@ -163,7 +163,7 @@ class Renderer:
         
         return column
     
-    def render(self, game_map: Map, player_x: float, player_y: float, player_angle: float) -> List[str]:
+    def render(self, game_map: Map, player_x: float, player_y: float, player_angle: float, other_players: list = None) -> List[str]:
         """
         Render the full 3D view.
         
@@ -172,23 +172,67 @@ class Renderer:
             player_x: Player X position
             player_y: Player Y position
             player_angle: Player viewing angle in radians
+            other_players: List of other players to render (for multiplayer)
             
         Returns:
             List of strings, one per row, representing the rendered frame
         """
+        if other_players is None:
+            other_players = []
+        
         # Frame buffer: list of columns
         frame = [[] for _ in range(self.width)]
         
         # Cast a ray for each column
         for x in range(self.width):
             ray_angle = player_angle + self.ray_angles[x]
-            distance, is_horizontal = self.cast_ray(game_map, player_x, player_y, ray_angle)
+            wall_distance, is_horizontal = self.cast_ray(game_map, player_x, player_y, ray_angle)
             
             # Clamp distance
-            distance = min(distance, self.max_depth)
+            wall_distance = min(wall_distance, self.max_depth)
             
-            # Render this column
-            column = self.render_column(distance, self.height, is_horizontal)
+            # Check for players in this ray's direction
+            player_to_render = None
+            player_distance = wall_distance
+            
+            for other_player in other_players:
+                if not other_player.is_alive:
+                    continue
+                
+                # Calculate relative position
+                dx = other_player.x - player_x
+                dy = other_player.y - player_y
+                distance = math.sqrt(dx*dx + dy*dy)
+                
+                # Skip if too far or too close
+                if distance > self.max_depth or distance < 0.1:
+                    continue
+                
+                # Calculate angle to player
+                angle_to_player = math.atan2(dy, dx)
+                
+                # Normalize both angles to [0, 2π]
+                current_ray = ray_angle % (2 * math.pi)
+                target_angle = angle_to_player % (2 * math.pi)
+                
+                # Calculate smallest angle difference
+                angle_diff = abs(current_ray - target_angle)
+                if angle_diff > math.pi:
+                    angle_diff = 2 * math.pi - angle_diff
+                
+                # Check if player is within this ray's cone
+                # Each column covers about (FOV / width) radians, use 3x for overlap
+                column_fov = (self.fov / self.width) * 3
+                if angle_diff < column_fov and distance < player_distance:
+                    player_to_render = other_player
+                    player_distance = distance
+            
+            # Render player if found and closer than wall
+            if player_to_render and player_distance < wall_distance:
+                column = self.render_player_column(player_distance, self.height)
+            else:
+                column = self.render_column(wall_distance, self.height, is_horizontal)
+            
             frame[x] = column
         
         # Convert columns to rows for display
@@ -198,6 +242,51 @@ class Renderer:
             rows.append(row)
         
         return rows
+    
+    def render_player_column(self, distance: float, column_height: int) -> List[str]:
+        """
+        Render a column showing another player.
+        
+        Args:
+            distance: Distance to the player
+            column_height: Height of screen in characters
+            
+        Returns:
+            List of characters for the column
+        """
+        column = []
+        
+        # Prevent division by zero
+        if distance < 0.1:
+            distance = 0.1
+        
+        # Calculate player height based on distance (players are "tall")
+        player_height = int(column_height / (distance * 0.8))  # Slightly taller than walls
+        
+        # Calculate where player appears on screen
+        player_start = max(0, (column_height - player_height) // 2)
+        player_end = min(column_height, (column_height + player_height) // 2)
+        
+        # Choose character based on distance for depth perception
+        if distance < 2.0:
+            player_char = '@'  # Close
+        elif distance < 5.0:
+            player_char = 'O'  # Medium
+        elif distance < 10.0:
+            player_char = 'o'  # Far
+        else:
+            player_char = '°'  # Very far
+        
+        # Build column
+        for y in range(column_height):
+            if y < player_start:
+                column.append(self.ceiling_char)
+            elif y < player_end:
+                column.append(player_char)
+            else:
+                column.append(self.floor_char)
+        
+        return column
 
 
 if __name__ == "__main__":

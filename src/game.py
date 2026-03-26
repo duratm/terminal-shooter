@@ -162,8 +162,14 @@ class Game:
         """Render the game."""
         self.stdscr.clear()
         
-        # Render 3D view
-        frame = self.renderer.render(self.game_map, self.player.x, self.player.y, self.player.angle)
+        # Render 3D view with other players
+        frame = self.renderer.render(
+            self.game_map, 
+            self.player.x, 
+            self.player.y, 
+            self.player.angle,
+            self.other_players  # Pass other players for rendering
+        )
         
         for y, row in enumerate(frame):
             try:
